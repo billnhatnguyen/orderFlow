@@ -1,5 +1,6 @@
 * {
   box-sizing: border-box;
+  font-family: "VT323", monospace;
 }
 
 body {
@@ -13,4 +14,42 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 30px;
+  border: 1px solid #CA1E08;
+}
+
+.navbar-left {
+  margin-left: 8px;
+}
+
+.navbar-right {
+  margin-right: 8px;
+}
+
+
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #FFFF77;
+  flex-direction: column;
+  background-image: url("images/Hero.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  text-shadow: 2px 2px 4px #333333;
+  text-align: center;
+}
+
+.view-calls-message {
+  font-weight: 100;
+  font-size: 100px;
+}
+
+.estimated-wait-time {
+  font-size: 20px;
 }

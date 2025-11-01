@@ -53,3 +53,65 @@ body {
 .estimated-wait-time {
   font-size: 20px;
 }
+
+/* SalesQueue */
+
+main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  font-weight: 100;
+}
+
+.info-text > h2 {
+  font-size: 70px;
+  margin: 100px 0 0 0;
+}
+
+.info-text > p {
+  font-size: 25px;
+  margin-bottom: 150px;
+}
+
+.entries {
+  display: inherit;
+  justify-content: space-evenly;
+  align-items: center;
+  flex-direction: row;
+  width: 100%;
+  height: auto;
+}
+
+.entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  border: 2px solid #CA1E08;
+  width: 500px;
+  height: 400px;
+  font-size: 25px;
+  padding-bottom: 30px;
+}
+
+.entry-number {
+  display: flex;
+  justify-content: space-between;
+  font-size: 30px;
+  padding: 45px 52px 30px 52px;
+  width: 100%;
+}
+
+.food-item-img {
+  width: 200px;
+  height: auto;
+}
+
+.arrow-btn {
+  display: flex;
+  justify-content: end;
+  width: 28px;
+  height: 28px;
+}

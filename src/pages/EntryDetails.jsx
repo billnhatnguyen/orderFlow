@@ -3,6 +3,7 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import EntryHeader from '../components/EntryHeader';
 import CustomerInfo from '../components/CustomerInfo';
+import Footer from '../components/Footer';
 import './EntryDetails.css';
 import EntryScroll from '../components/EntryScroll';
 
@@ -21,6 +22,7 @@ export default function EntryDetails() {
             <EntryHeader />
             <CustomerInfo />
             <EntryScroll />
+            <Footer />
         </>
     );
 }

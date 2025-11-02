@@ -79,15 +79,10 @@ main {
 .entries {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  justify-items: center;
   width: 100%;
   gap: 0;
-
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 per row */
-  gap: 40px; /* space between entries */
-  width: 100%;
-  justify-items: center;
+  padding: 0;
+  margin: 0;
 }
 
 .entry {
@@ -141,7 +136,6 @@ main {
   text-decoration: none;
   color: inherit;
   width: 100%;
-  max-width: 400px;
 }
 
 .entry-details {
@@ -234,4 +228,33 @@ main {
 .nav-button:hover .nav-image {
   transform: scale(1.05);
   transition: transform 0.2s ease;
+}
+
+/* Footer styling to ensure visibility */
+footer {
+  display: block;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #8E1606;
+  background: rgba(255,255,255,0.9); /* light background so text is readable */
+  border-top: 2px solid #CA1E08;
+  position: relative;
+  z-index: 5;
+  font-size: 20px;
+}
+
+footer small {
+  display: block;
+  line-height: 1.4;
+  white-space: pre-line; /* preserve line breaks if present */
+}
+
+/* Make clickable nav element in navbar show pointer and focus outline */
+.nav-clickable {
+  cursor: pointer;
+}
+
+.nav-clickable:focus {
+  outline: 3px solid rgba(202,30,8,0.25);
+  outline-offset: 2px;
 }

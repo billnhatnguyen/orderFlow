@@ -13,18 +13,98 @@ import ast
 import json
 import pyttsx3
 import speech_recognition as sr
+import firebase_admin
+from firebase_admin import credentials, db
+import datetime
+import time
 
-#Our yapper 
-nyapper = pyttsx3.init()
-rate = nyapper.getProperty('rate')
-nyapper.setProperty('rate', rate - 50)  
-nyapper.setProperty('volume', 1)  
-voices = nyapper.getProperty('voices')
-nyapper.setProperty('voice', voices[0].id)
+cred = credentials.Certificate("./orderflow-6b892-firebase-adminsdk-fbsvc-6a6c495452.json")
+firebase_admin.initialize_app(cred, {'databaseURL': 'https://orderflow-6b892-default-rtdb.firebaseio.com/'})
+ref = db.reference()
 
-def say_prompt(text:str):
-    print(text)
-    nyapper.say(text)
+# Initialize text-to-speech engine
+def initialize_tts():
+    try:
+        engine = pyttsx3.init()
+        rate = engine.getProperty('rate')
+        engine.setProperty('rate', rate - 20)
+        engine.setProperty('volume', 1.0)
+        voices = engine.getProperty('voices')
+        engine.setProperty('voice', voices[6].id)
+
+    except Exception as e:
+        print(f"TTS initialization error: {e}")
+        return None
+r = sr.Recognizer()
+
+def speakUp(prompt: str = None) -> str:
+    if prompt:
+        print(prompt)
+        say_prompt(prompt)
+    with sr.Microphone() as source: 
+        r.adjust_for_ambient_noise(source, duration=0.5)
+        try:
+            audio = r.listen(source, timeout=5, phrase_time_limit=8)
+        except sr.WaitTimeoutError:
+            return "reprompt me please"
+
+        try:
+            text = r.recognize_google(audio)
+            print(f"You said: {text}")
+            return text
+        except sr.UnknownValueError:
+            return "reprompt me please"
+        except sr.RequestError:
+            return "reprompt me please"
+
+# Global TTS engine
+nyapper = initialize_tts()
+
+def say_prompt(text: str):
+    """Speaks the text using TTS. Returns None (doesn't return the text)."""
+    if not text:
+        return
+        
+    print(f"[TTS]: {text}")
+    global nyapper
+    
+    for attempt in range(3):  # Try 3 times
+        try:
+            if nyapper is None:
+                nyapper = initialize_tts()
+                if nyapper is None:
+                    return
+            
+            # Stop any ongoing speech
+            try:
+                nyapper.stop()
+            except:
+                pass
+            
+            # Clear the queue
+            if hasattr(nyapper, '_inLoop') and nyapper._inLoop:
+                nyapper.endLoop()
+            
+            # Speak the text
+            nyapper.say(text)
+            nyapper.runAndWait()
+            
+            # Add small delay to ensure completion
+            time.sleep(0.5)
+            return
+            
+        except Exception as e:
+            print(f"TTS Error (attempt {attempt + 1}): {e}")
+            try:
+                if nyapper:
+                    nyapper.stop()
+            except:
+                pass
+            nyapper = None
+            time.sleep(0.5)
+    
+    # If all attempts failed, just print
+    print(f"[TTS FAILED - Text only]: {text}")
 
 load_dotenv() 
 
@@ -65,7 +145,7 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite")
 def name (*args, **kwargs):
     while True:
         say_prompt("What is your name?")
-        name = input("You: ")
+        name  = speakUp("You: ")
         prompt = f"""user said {name} is their name please confirm that this is a valid name if it is respond with 'valid name' else respond with 'invalid name'"""
         response = llm.invoke(prompt).content.lower()
         if response == "valid name":
@@ -77,8 +157,8 @@ def name (*args, **kwargs):
 def phoneNumber(*args, **kwargs):
     while True:
         say_prompt("What is your phone number?")
-        phone = input("You:")
-        prompt = f"""user said {phone} is their phone number please confirm that this is a valid phone number 10 numbers either words or numbers respond with 'valid phone number' else respond with 'invalid phone number'"""
+        phone = speakUp("You: ")
+        prompt = f"""user said {phone} is their phone number please confirm that this is a valid phone number as in it seems like it is 10 numbers either words or numbers respond with 'valid phone number' else respond with 'invalid phone number'"""
         response = llm.invoke(prompt).content.lower()
         if response == "valid phone number":
             return phone
@@ -89,7 +169,7 @@ def phoneNumber(*args, **kwargs):
 def pickUpOrDeliver(*args, **kwargs):
     while True:
         say_prompt("Would you like to pick up your order or have it delivered? ")
-        user = input("You: ")
+        user = speakUp("You: ")
         prompt = f"""
         The user said: "{user}"
 
@@ -110,13 +190,13 @@ def pickUpOrDeliver(*args, **kwargs):
         elif response == "delivery":
             return "delivery"
         else:
-            print("Invalid choice. Please choose either 'pick up' or 'delivery'.")
+            say_prompt("Invalid choice. Please choose either 'pick up' or 'delivery'.")
 
 def pickUplocation(*args, **kwargs):
     while True:
 
         say_prompt("Please provide your pick-up location: ")
-        location = input("You: ")
+        location = speakUp("You: ")
         prompt = f"""
         The user said: "{location}"
 
@@ -139,20 +219,19 @@ def pickUplocation(*args, **kwargs):
         if response == "valid pick up location":
             return location
         else:
-            print("invalid pick up location")
+            say_prompt("Invalid pick up location. Please try again.")
 
 def deliverylocation(*args, **kwargs):
     while True:
         
         say_prompt("Please provide your delivery location: ")
-        location = input("You: ")
+        location = speakUp("You: ")
         prompt = f"user said {location} is their delivery address if it looks like a real address respond with 'valid' else respond with 'invalid'"
         response = llm.invoke(prompt).content.lower()
         if response == "valid":
             return location
         else:
-            print("invalid")
-    
+            say_prompt("Invalid address, please try again.") 
 
 def parse_order_dict(response: str) -> dict:
     match = re.search(r"\{.*\}", response, re.DOTALL)
@@ -163,41 +242,126 @@ def parse_order_dict(response: str) -> dict:
             pass
     return {}
 
-
-
 def actualOrder(menu: dict, *args, **kwargs) -> Dict[str, int]:
     order_items = {}
     conversation = []
-    print("\nAvailable menu items:")
+
+    say_prompt("Available menu items:")
+    time.sleep(0.5) 
     for item, (price, desc) in menu.items():
         print(f"- {item}: ${price:.2f} - {desc}")
-    print("\nWhat would you like to order? Feel free to ask questions about our menu items!")
-    
+
+    say_prompt("What would you like to order? Feel free to ask questions about our menu items!")
+
     while True:
-        user_input = input("You: ")
-        
-        if user_input.lower() == "done":
+        user_input = speakUp("You: ")
+
+        # --------------------------
+        # Step 1: Check if done
+        # --------------------------
+        done_prompt = f"""
+        The user said: "{user_input}"
+
+        Task:
+        Determine if the user is indicating they are FINISHED ordering and want to proceed to checkout.
+
+        Examples of "done":
+        - "done"
+        - "that's all"
+        - "that's it"
+        - "I'm finished"
+        - "nothing else"
+        - "that'll be all"
+        - "just that"
+        - "no more"
+        - "finish my order"
+        - "checkout"
+        - "ready to order"
+        - "complete my order"
+
+        Examples of "not done":
+        - "add another pizza"
+        - "I want more"
+        - "also get me..."
+        - "what else do you have"
+        - asking questions about menu items
+
+        Respond with ONLY one word:
+        - "done" if they're finished ordering
+        - "continue" if they want to keep ordering or are asking questions
+
+        Your entire response must be exactly: done OR continue
+        """
+        user_decision = llm.invoke(done_prompt).content.lower().strip()
+
+        if user_decision == "done":
             if not order_items:
                 say_prompt("Your order is empty! Please tell me what you'd like to order.")
                 continue
-                
+
+            # Display current order
             print("\nYour current order:")
             for item, qty in order_items.items():
                 price = menu[item][0] * qty
                 print(f"- {qty}x {item} (${price:.2f})")
             total = sum(menu[item][0] * qty for item, qty in order_items.items())
             print(f"\nTotal: ${total:.2f}")
-            confirm = input("Is this correct? (yes/no): ").lower()
+
+            confirm_input = speakUp("Is this correct? Say yes or no: ").lower().strip()
+
+            confirm_prompt = f"""
+            The user said: "{confirm_input}"
+
+            Task:
+            Determine if the user is CONFIRMING their order is correct or if they want to CHANGE it.
+
+            Examples of "yes" (order is correct):
+            - "yes"
+            - "yeah"
+            - "yep"
+            - "correct"
+            - "that's right"
+            - "looks good"
+            - "perfect"
+            - "all good"
+            - "affirmative"
+            - "sure"
+            - "ok"
+            - "okay"
+
+            Examples of "no" (wants to change order):
+            - "no"
+            - "nope"
+            - "not quite"
+            - "wait"
+            - "hold on"
+            - "change it"
+            - "actually..."
+            - "I want to modify"
+            - "that's wrong"
+            - "incorrect"
+
+            Respond with ONLY one word:
+            - "yes" if they're confirming the order is correct
+            - "no" if they want to make changes
+
+            Your entire response must be exactly: yes OR no
+            """
+            confirm = llm.invoke(confirm_prompt).content.lower().strip()
             if confirm == "yes":
                 break
             else:
-                print("Ok, let's continue with your order.")
+                say_prompt("Ok, let's continue with your order.")
                 continue
 
-        # Add user input to conversation history
+        # --------------------------
+        # Add user input to conversation
+        # --------------------------
         conversation.append(f"User: {user_input}")
-        
-        # First, let's understand the user's intent
+
+        # --------------------------
+        # Step 2: Determine intent
+        # --------------------------
         intent_prompt = (
             "You are a knowledgeable pizza restaurant assistant. Analyze the following customer message:\n"
             f"Customer: {user_input}\n\n"
@@ -207,11 +371,12 @@ def actualOrder(menu: dict, *args, **kwargs) -> Dict[str, int]:
             "3. Making general conversation\n"
             "Respond ONLY with the number (1, 2, or 3)"
         )
-        
         intent = llm.invoke(intent_prompt).content.strip()
-        
+
+        # --------------------------
+        # Step 3: Handle menu questions
+        # --------------------------
         if intent == "1":
-            # Handle menu questions
             menu_prompt = (
                 "You are a pizza expert. Answer the following customer question about our menu:\n"
                 f"Menu:\n{json.dumps(menu, indent=2)}\n\n"
@@ -219,11 +384,13 @@ def actualOrder(menu: dict, *args, **kwargs) -> Dict[str, int]:
                 "Provide a helpful, knowledgeable response focusing on ingredients, prices, and recommendations."
             )
             answer = llm.invoke(menu_prompt).content
-            print(f"\nAssistant: {answer}\n")
+            say_prompt(answer)
             continue
-            
+
+        # --------------------------
+        # Step 4: Handle orders
+        # --------------------------
         elif intent == "2":
-            # Handle order placement/modification
             order_prompt = (
                 "You are a pizza order assistant. Extract the order details from this conversation.\n"
                 f"Menu items:\n{json.dumps(menu, indent=2)}\n\n"
@@ -236,28 +403,19 @@ def actualOrder(menu: dict, *args, **kwargs) -> Dict[str, int]:
                 "4. Use exact menu item names\n"
                 "Example: {'Pepperoni Pizza': 2, 'Margherita Pizza': 1}\n"
             )
-            
+
             try:
                 response = llm.invoke(order_prompt).content
                 conversation.append(f"Assistant: {response}")
-                
+
                 parsed = parse_order_dict(response)
                 if parsed:
-                    # Validate all items exist in menu
-                    valid_items = {}
+                    # Validate items
                     invalid_items = []
-                    
                     for item, qty in parsed.items():
-                        if item in menu:
-                            try:
-                                qty_num = int(qty)
-                                if qty_num >= 0:  # Allow zero for removals
-                                    valid_items[item] = qty_num
-                            except (ValueError, TypeError):
-                                print(f"Invalid quantity for {item}")
-                        else:
+                        if item not in menu:
                             invalid_items.append(item)
-                    
+
                     if invalid_items:
                         suggestion_prompt = (
                             f"The customer asked for '{', '.join(invalid_items)}' but these aren't on our menu.\n"
@@ -265,19 +423,26 @@ def actualOrder(menu: dict, *args, **kwargs) -> Dict[str, int]:
                             "Suggest the closest menu item(s) that match what they want."
                         )
                         suggestion = llm.invoke(suggestion_prompt).content
-                        print(f"\nAssistant: {suggestion}")
+                        say_prompt(suggestion)
                         continue
-                    
-                    # Update the order with valid items
-                    order_items = valid_items  # Replace with new state
+
+                    # Update order without overwriting previous items
+                    for item, qty in parsed.items():
+                        try:
+                            qty_num = int(qty)
+                            if qty_num >= 0:
+                                order_items[item] = qty_num
+                        except:
+                            say_prompt(f"Invalid quantity for {item}")
+
                     if order_items:
-                        print("\nYour updated order:")
+                        say_prompt("Your updated order:")
                         for item, qty in order_items.items():
                             price = menu[item][0] * qty
                             print(f"- {qty}x {item} (${price:.2f})")
                         total = sum(menu[item][0] * qty for item, qty in order_items.items())
-                        print(f"\nTotal: ${total:.2f}")
-                        print("\nWhat else would you like? (say 'done' to finish)")
+                        say_prompt(f"Total: ${total:.2f}")
+                        say_prompt("What else would you like? Say 'done' to finish.")
                 else:
                     clarification_prompt = (
                         f"The customer said: '{user_input}'\n"
@@ -285,24 +450,25 @@ def actualOrder(menu: dict, *args, **kwargs) -> Dict[str, int]:
                         "Include an example of how they could phrase their order."
                     )
                     clarification = llm.invoke(clarification_prompt).content
-                    print(f"\nAssistant: {clarification}")
+                    say_prompt(clarification)
+
             except Exception as e:
-                print("I apologize for the confusion. Could you please rephrase your order?")
-                print("For example: 'I'd like 2 Pepperoni Pizzas' or 'one Margherita please'")
-        
+                say_prompt("I apologize for the confusion. Could you please rephrase your order?")
+                say_prompt("For example: 'I'd like 2 Pepperoni Pizzas' or 'one Margherita please'")
+
+        # --------------------------
+        # Step 5: Handle general chat
+        # --------------------------
         else:
-            # Handle general conversation
             chat_prompt = (
                 "You are a friendly pizza restaurant assistant. Respond to the customer's message:\n"
                 f"Customer: {user_input}\n\n"
                 "Provide a friendly response and guide them toward making an order if appropriate."
             )
             response = llm.invoke(chat_prompt).content
-            print(f"\nAssistant: {response}\n")
-    
+            say_prompt(response)
+
     return order_items
-
-
 
 def get_total_price(order_items: Dict[str, int], menu=menu) -> float:
     """Compute total price for an order.
@@ -336,7 +502,6 @@ def get_total_price(order_items: Dict[str, int], menu=menu) -> float:
                 return get_total_price(last_order_items, menu=menu)
             return 0.0
 
-    # Dict -> straightforward mapping
     if isinstance(order_items, dict):
         # update global last_order_items for later fallback
         try:
@@ -420,6 +585,41 @@ def get_total_price(order_items: Dict[str, int], menu=menu) -> float:
 
     return round(total, 2)
 
+def firebasePusher(receipt_dict: dict):
+    try:
+        # If agent returned a Pydantic model, convert it to a plain dict first
+        if hasattr(receipt_dict, "dict"):
+            receipt_dict = receipt_dict.dict()
+
+        # Normalize orderDetails (Pydantic models -> dict)
+        if isinstance(receipt_dict.get("orderDetails"), list):
+            normalized = []
+            for item in receipt_dict["orderDetails"]:
+                if hasattr(item, "dict"):
+                    normalized.append(item.dict())
+                elif isinstance(item, dict):
+                    normalized.append(item)
+                else:
+                    # best-effort conversion
+                    normalized.append({"itemName": str(item)})
+            receipt_dict["orderDetails"] = normalized
+
+        # Add timestamp in UTC ISO format if not present
+        if not receipt_dict.get("timestamp"):
+            receipt_dict["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+        # Push under /orders
+        new_ref = ref.child("orders").push(receipt_dict)
+        print(f"Pushed receipt to Firebase at key: {new_ref.key}")
+        try:
+            say_prompt("Order saved successfully. Thank you.")
+        except Exception:
+            pass
+        return new_ref.key
+    except Exception as exc:
+        print(f"Failed to push receipt to Firebase: {exc}")
+        return None
+
 GreetingName = Tool(
     name="get_name",
     func=name,
@@ -431,7 +631,6 @@ GreentingPhone = Tool(
     func=phoneNumber,
     description="MUST be called after we get their nameAsks the user for their phone number and validates it."
 )
-
 
 PickOrDel = Tool(
     name="get_pickordel_method",
@@ -457,13 +656,11 @@ getOrder_tool = Tool(
     description="Collects the user's order details including items, quantities, and prices."
 )
 
-
 getTotalPrice_tool = Tool(
     name="get_total_price",
     func=get_total_price,
     description="Calculates totalPrice from order items."
 )
-
 
 #Our actual agent that will use the llm and prompt defined above
 agent = create_agent(
@@ -502,16 +699,18 @@ agent = create_agent(
     tools=[GreetingName, GreentingPhone, PickOrDel, pickUpLocation_tool, deliveryLocation_tool, getOrder_tool, getTotalPrice_tool],
     )
 
+if __name__ == "__main__":
+    try:
+        say_prompt("Welcome to the Pizza Ordering System!")
+    except Exception:
+        print("Welcome to the Pizza Ordering System!")
 
-print("Welcome to the Pizza Ordering System!")
+    print("=" * 64)
+    print("CUSTOMER SERVICE AGENT")
+    print("=" * 64)
 
-print("=" * 64)
-print("CUSTOMER SERVICE AGENT")
-print("=" * 64)
+    conversation_history = [("user", "hi")]
 
-conversation_history = []
-
-conversation_history = [("user", "hi")]
-
-result = agent.invoke({"messages": conversation_history})
-print(result["structured_response"])
+    result = agent.invoke({"messages": conversation_history})
+    firebasePusher(result["structured_response"])
+    print(result["structured_response"])

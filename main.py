@@ -1,3 +1,4 @@
+import os
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -17,6 +18,8 @@ import firebase_admin
 from firebase_admin import credentials, db
 import datetime
 import time
+from elevenlabs.client import ElevenLabs
+from elevenlabs.play import play
 
 cred = credentials.Certificate("./orderflow-6b892-firebase-adminsdk-fbsvc-6a6c495452.json")
 firebase_admin.initialize_app(cred, {'databaseURL': 'https://orderflow-6b892-default-rtdb.firebaseio.com/'})
@@ -60,53 +63,69 @@ def speakUp(prompt: str = None) -> str:
 # Global TTS engine
 nyapper = initialize_tts()
 
-def say_prompt(text: str):
-    """Speaks the text using TTS. Returns None (doesn't return the text)."""
-    if not text:
-        return
-        
-    print(f"[TTS]: {text}")
-    global nyapper
-    
-    for attempt in range(3):  # Try 3 times
-        try:
-            if nyapper is None:
-                nyapper = initialize_tts()
-                if nyapper is None:
-                    return
-            
-            # Stop any ongoing speech
-            try:
-                nyapper.stop()
-            except:
-                pass
-            
-            # Clear the queue
-            if hasattr(nyapper, '_inLoop') and nyapper._inLoop:
-                nyapper.endLoop()
-            
-            # Speak the text
-            nyapper.say(text)
-            nyapper.runAndWait()
-            
-            # Add small delay to ensure completion
-            time.sleep(0.5)
-            return
-            
-        except Exception as e:
-            print(f"TTS Error (attempt {attempt + 1}): {e}")
-            try:
-                if nyapper:
-                    nyapper.stop()
-            except:
-                pass
-            nyapper = None
-            time.sleep(0.5)
-    
-    # If all attempts failed, just print
-    print(f"[TTS FAILED - Text only]: {text}")
+#def say_prompt(text: str):
+#    """Speaks the text using TTS. Returns None (doesn't return the text)."""
+#    if not text:
+#        return
+#        
+#    print(f"[TTS]: {text}")
+#    global nyapper
+#    
+#    for attempt in range(3):  # Try 3 times
+#        try:
+#            if nyapper is None:
+#                nyapper = initialize_tts()
+#                if nyapper is None:
+#                    return
+#            
+#            # Stop any ongoing speech
+#            try:
+#                nyapper.stop()
+#            except:
+#                pass
+#            
+#            # Clear the queue
+#            if hasattr(nyapper, '_inLoop') and nyapper._inLoop:
+#                nyapper.endLoop()
+#            
+#            # Speak the text
+#            nyapper.say(text)
+#            nyapper.runAndWait()
+#            
+#            # Add small delay to ensure completion
+#            time.sleep(0.5)
+#            return
+#            
+#        except Exception as e:
+#            print(f"TTS Error (attempt {attempt + 1}): {e}")
+#            try:
+#                if nyapper:
+#                    nyapper.stop()
+#            except:
+#                pass
+#            nyapper = None
+#            time.sleep(0.5)
+#    
+#    # If all attempts failed, just print
+#    print(f"[TTS FAILED - Text only]: {text}")
+#
+
 
 load_dotenv() 
+
+elevenlabs = ElevenLabs( api_key=os.getenv("ELEVENLABS_API_KEY"),)
+
+def say_prompt(saying: str):
+    print(saying)
+    audio = elevenlabs.text_to_speech.convert(
+    text= saying,
+    voice_id="JBFqnCBsd6RMkjVDRZzb",
+    model_id="eleven_multilingual_v2",
+    output_format="mp3_44100_128",
+    )
+    play(audio)
+
+
 
 menu = {
     "Margherita Pizza": [10.0, "Classic pizza with tomato sauce, mozzarella, and basil.", ], 
@@ -145,7 +164,8 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite")
 def name (*args, **kwargs):
     while True:
         say_prompt("What is your name?")
-        name  = speakUp("You: ")
+        print("Customer: ")
+        name  = speakUp("")
         prompt = f"""user said {name} is their name please confirm that this is a valid name if it is respond with 'valid name' else respond with 'invalid name'"""
         response = llm.invoke(prompt).content.lower()
         if response == "valid name":
@@ -157,7 +177,7 @@ def name (*args, **kwargs):
 def phoneNumber(*args, **kwargs):
     while True:
         say_prompt("What is your phone number?")
-        phone = speakUp("You: ")
+        phone = speakUp("")
         prompt = f"""user said {phone} is their phone number please confirm that this is a valid phone number as in it seems like it is 10 numbers either words or numbers respond with 'valid phone number' else respond with 'invalid phone number'"""
         response = llm.invoke(prompt).content.lower()
         if response == "valid phone number":
@@ -169,7 +189,7 @@ def phoneNumber(*args, **kwargs):
 def pickUpOrDeliver(*args, **kwargs):
     while True:
         say_prompt("Would you like to pick up your order or have it delivered? ")
-        user = speakUp("You: ")
+        user = speakUp("")
         prompt = f"""
         The user said: "{user}"
 
@@ -196,7 +216,7 @@ def pickUplocation(*args, **kwargs):
     while True:
 
         say_prompt("Please provide your pick-up location: ")
-        location = speakUp("You: ")
+        location = speakUp("")
         prompt = f"""
         The user said: "{location}"
 
@@ -225,7 +245,7 @@ def deliverylocation(*args, **kwargs):
     while True:
         
         say_prompt("Please provide your delivery location: ")
-        location = speakUp("You: ")
+        location = speakUp("")
         prompt = f"user said {location} is their delivery address if it looks like a real address respond with 'valid' else respond with 'invalid'"
         response = llm.invoke(prompt).content.lower()
         if response == "valid":
@@ -254,7 +274,7 @@ def actualOrder(menu: dict, *args, **kwargs) -> Dict[str, int]:
     say_prompt("What would you like to order? Feel free to ask questions about our menu items!")
 
     while True:
-        user_input = speakUp("You: ")
+        user_input = speakUp("")
 
         # --------------------------
         # Step 1: Check if done
@@ -303,9 +323,9 @@ def actualOrder(menu: dict, *args, **kwargs) -> Dict[str, int]:
             print("\nYour current order:")
             for item, qty in order_items.items():
                 price = menu[item][0] * qty
-                print(f"- {qty}x {item} (${price:.2f})")
+                speakUp(f"- {qty}x {item} (${price:.2f})")
             total = sum(menu[item][0] * qty for item, qty in order_items.items())
-            print(f"\nTotal: ${total:.2f}")
+            speakUp(f"\nTotal: ${total:.2f}")
 
             confirm_input = speakUp("Is this correct? Say yes or no: ").lower().strip()
 
@@ -378,7 +398,7 @@ def actualOrder(menu: dict, *args, **kwargs) -> Dict[str, int]:
         # --------------------------
         if intent == "1":
             menu_prompt = (
-                "You are a pizza expert. Answer the following customer question about our menu:\n"
+                "You are a pizza expert. Answer the following customer question about our menu:,make it super short tho dont yap too too long lol limit yourself \n"
                 f"Menu:\n{json.dumps(menu, indent=2)}\n\n"
                 f"Customer question: {user_input}\n\n"
                 "Provide a helpful, knowledgeable response focusing on ingredients, prices, and recommendations."
@@ -468,7 +488,17 @@ def actualOrder(menu: dict, *args, **kwargs) -> Dict[str, int]:
             response = llm.invoke(chat_prompt).content
             say_prompt(response)
 
-    return order_items
+    detailed_order = []
+    for item, qty in order_items.items():
+        if item in menu:
+            price = menu[item][0]  
+            detailed_order.append({
+                "itemName": item,
+                "quantity": qty,
+                "price": price
+            })
+
+    return detailed_order
 
 def get_total_price(order_items: Dict[str, int], menu=menu) -> float:
     """Compute total price for an order.

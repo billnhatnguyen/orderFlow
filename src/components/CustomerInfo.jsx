@@ -2,7 +2,7 @@ export default function CustomerInfo() {
     return (
         <main>
             <h1>Customer Info</h1>
-            <ul>
+            <ul className="customer-info">
                 <li>Address: </li>
                 <li>Name: </li>
                 <li>Phone Number: </li>

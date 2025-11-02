@@ -2,7 +2,9 @@
 import { useParams, Link, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import EntryHeader from '../components/EntryHeader';
+import CustomerInfo from '../components/CustomerInfo';
 import './EntryDetails.css';
+import EntryScroll from '../components/EntryScroll';
 
 export default function EntryDetails() {
     const { entryId } = useParams();
@@ -17,6 +19,8 @@ export default function EntryDetails() {
         <>
             <Navbar />
             <EntryHeader />
+            <CustomerInfo />
+            <EntryScroll />
         </>
     );
 }

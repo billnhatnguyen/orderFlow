@@ -1,39 +1,66 @@
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import Entry from "./Entry";
+import { getDatabase, ref, get } from "firebase/database";
+import app from "../Firebase.jsx";
 
-// Import images
-import foodImg from "../images/food.png";
-import appleImg from "../images/apple.png";
-import pumpkinImg from "../images/pumpkin.png";
-
-// Array of all entries for navigation
-const entries = [
-    {
-        id: "01",
-        title: "Tomato Basil Pasta",
-        image: foodImg
-    },
-    {
-        id: "02",
-        title: "Apple Citrus Salad",
-        image: appleImg
-    },
-    {
-        id: "03",
-        title: "Pumpkin Soup",
-        image: pumpkinImg
-    }
-];
+// Optional helper to match image based on item name (same logic as SalesQueue)
+function getImageForItem(name) {
+  const lower = (name || "").toLowerCase();
+  if (lower.includes("pizza")) return "src/images/food.png";
+  if (lower.includes("salad")) return "src/images/apple.png";
+  if (lower.includes("soup")) return "src/images/pumpkin.png";
+  return "src/images/default.png";
+}
 
 export default function EntryScroll() {
     const { entryId } = useParams();
-    
-    // Find the current entry's index
-    const currentIndex = entries.findIndex(entry => entry.id === entryId);
-    
-    // Get previous and next entries
+    const [entries, setEntries] = useState([]);
+
+    useEffect(() => {
+      const fetchEntries = async () => {
+        try {
+          const db = getDatabase(app);
+          const ordersRef = ref(db, "orders");
+          const snapshot = await get(ordersRef);
+
+          if (!snapshot.exists()) {
+            setEntries([]);
+            return;
+          }
+
+          const orders = snapshot.val();
+          const newEntries = [];
+
+          Object.entries(orders).forEach(([orderId, order]) => {
+            if (Array.isArray(order.orderDetails)) {
+              order.orderDetails.forEach((item, index) => {
+                newEntries.push({
+                  id: `${orderId}-${index}`,
+                  title: item.itemName,
+                  image: getImageForItem(item.itemName),
+                  orderId,
+                });
+              });
+            }
+          });
+
+          setEntries(newEntries);
+        } catch (err) {
+          console.error("Error loading entries for EntryScroll:", err);
+          setEntries([]);
+        }
+      };
+
+      fetchEntries();
+    }, []);
+
+    // if entries not loaded yet, don't render navigation
+    if (!entries || entries.length === 0) return null;
+
+    // Find the current entry's index using the composite id
+    const currentIndex = entries.findIndex(e => e.id === entryId);
     const prevEntry = currentIndex > 0 ? entries[currentIndex - 1] : null;
-    const nextEntry = currentIndex < entries.length - 1 ? entries[currentIndex + 1] : null;
+    const nextEntry = currentIndex >= 0 && currentIndex < entries.length - 1 ? entries[currentIndex + 1] : null;
 
     return (
         <div className="entry-scroll">

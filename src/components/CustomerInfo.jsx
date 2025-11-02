@@ -4,17 +4,29 @@ import app from "../Firebase.jsx";
 import React, { useState, useEffect } from "react";
 
 export default function CustomerInfo() {
-  const { state } = useLocation();
-  const orderKey = state?.orderKey; // Firebase-generated key
+  const location = useLocation();
+  const state = location.state || {};
+  const { entryId } = useParams();
+
+  // Accept either state.orderId (from SalesQueue entry) or state.orderKey,
+  // or fall back to parsing the route param (composite id like orderId-0)
+  const derivedOrderKey = state.orderId || state.orderKey || (entryId && entryId.includes('-') ? entryId.split('-')[0] : (entryId || null));
+  const orderKey = derivedOrderKey;
   const [order, setOrder] = useState(null);
 
   useEffect(() => {
     if (!orderKey) return;
 
     const fetchOrder = async () => {
-      const db = getDatabase(app);
-      const snapshot = await get(ref(db, `orders/${orderKey}`));
-      if (snapshot.exists()) setOrder(snapshot.val());
+      try {
+        const db = getDatabase(app);
+        const snapshot = await get(ref(db, `orders/${orderKey}`));
+        if (snapshot.exists()) setOrder(snapshot.val());
+        else setOrder(null);
+      } catch (err) {
+        console.error('Error fetching order in CustomerInfo:', err);
+        setOrder(null);
+      }
     };
 
     fetchOrder();

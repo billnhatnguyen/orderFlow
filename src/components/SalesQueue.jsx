@@ -55,15 +55,16 @@ export default function SalesQueue() {
             {entries.length === 0 ? (
                 <p>Loading or no data available...</p>
             ) : (
-                entries.map((entry, index) => (
-                <Entry
-                    key={entry.id}
-                    id={index + 1}            // entry number for display
-                    title={entry.title}
-                    image={entry.image}
-                    state={{ orderKey: entry.orderId }} // pass the Firebase key
-                />
-                ))
+        entries.map((entry, index) => (
+        <Entry
+          key={entry.id}
+          id={entry.id}            // use composite id for URL
+          title={entry.title}
+          image={entry.image}
+          state={entry}           // pass full entry metadata
+          displayNumber={index + 1} // friendly sequential number for UI
+        />
+        ))
             )}
         </div>
     </main>

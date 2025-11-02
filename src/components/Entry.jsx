@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
 
-export default function Entry({ id = "??", title = "", image = "src/images/pumpkin.png" }) {
-    // pass the entry data via Link 'state' so the details page can read it
+// Entry receives an optional `state` prop (the full entry object created in SalesQueue)
+export default function Entry({ id = "??", title = "", image = "src/images/pumpkin.png", state = null }) {
+    // forward provided state into the Link so EntryDetails can read full order metadata
+    const linkState = state || { id, title, image };
+
     return (
         <Link
             to={`/entry/${id}`}
-            state={{ id, title, image }}
+            state={linkState}
             onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' })}
         >
             <div className="entry">

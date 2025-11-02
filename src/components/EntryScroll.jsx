@@ -43,6 +43,7 @@ export default function EntryScroll() {
                         to={`/entry/${prevEntry.id}`} 
                         state={prevEntry}
                         className="nav-button prev"
+                        onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' })}
                     >
                         <div className="nav-content">
                             <img src={prevEntry.image} alt={prevEntry.title} className="nav-image" />
@@ -59,6 +60,7 @@ export default function EntryScroll() {
                         to={`/entry/${nextEntry.id}`} 
                         state={nextEntry}
                         className="nav-button next"
+                        onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' })}
                     >
                         <div className="nav-content">
                             <div className="nav-text">

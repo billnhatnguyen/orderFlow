@@ -1,0 +1,56 @@
+* {
+  box-sizing: border-box;
+  font-family: "VT323", monospace;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  background-color: #FFFF77;
+  color: #8E1606;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 30px;
+  border: 1px solid #CA1E08;
+}
+
+.navbar-left {
+  margin-left: 8px;
+}
+
+.navbar-right {
+  margin-right: 8px;
+}
+
+header {
+    position: relative;
+    display: flex;
+    justify-content: flex-end; /* text sits at bottom */
+    align-items: center;
+    flex-direction: column;
+  
+    height: 300px;
+    background-image: url("/Users/krishivpanchal/Desktop/OrderFlow/src/images/food.png");
+    background-position-y: -60%;
+    background-position-x: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
+
+header > h1 {
+    font-size: 150px;
+    font-weight: 100;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0;
+
+}
+
+header > p {
+    font-size: 25px;
+}
+

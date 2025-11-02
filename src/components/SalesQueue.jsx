@@ -1,3 +1,5 @@
+import Entry from "./Entry"
+
 export default function SalesQueue() {
     return (
         <main>
@@ -7,41 +9,21 @@ export default function SalesQueue() {
             </div>
 
             <div className="entries">
-                <div className="entry">
-                    <div className="entry-number">
-                        <span>Entry</span>
-                        <span>#01</span>
-                    </div>
-
-                    <img src="src/images/food.png" className="food-item-img" alt="Plate of tomato basil pasta"/>
-
-                    <span>Tomato Basil Pasta</span>
-                    <img src="src/images/Button.png" className="arrow-btn" alt="arrow pointing to the downwards right direction"/>
-                </div>
-
-                <div className="entry">
-                    <div className="entry-number">
-                        <span>Entry</span>
-                        <span>#02</span>
-                    </div>
-
-                    <img src="src/images/apple.png" className="food-item-img" alt="An apple"/>
-
-                    <span>Apple Citrus Salad</span>
-                    <img src="src/images/Button.png" className="arrow-btn" alt="arrow pointing to the downwards right direction"/>
-                </div>
-
-                <div className="entry">
-                    <div className="entry-number">
-                        <span>Entry</span>
-                        <span>#03</span>
-                    </div>
-
-                    <img src="src/images/pumpkin.png" className="food-item-img" alt="Pumpkin"/>
-
-                    <span>Pumpkin Soup</span>
-                    <img src="src/images/Button.png" className="arrow-btn" alt="arrow pointing to the downwards right direction"/>
-                </div>
+                <Entry 
+                    id="01" 
+                    title="Tomato Basil Pasta" 
+                    image="src/images/food.png"
+                />
+                <Entry 
+                    id="02" 
+                    title="Apple Citrus Salad" 
+                    image="src/images/apple.png"
+                />
+                <Entry 
+                    id="03" 
+                    title="Pumpkin Soup" 
+                    image="src/images/pumpkin.png"
+                />  
             </div>
 
         </main>

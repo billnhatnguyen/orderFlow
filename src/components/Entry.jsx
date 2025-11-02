@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 // Entry receives an optional `state` prop (the full entry object created in SalesQueue)
-export default function Entry({ id = "??", title = "", image = "src/images/pumpkin.png", state = null, displayNumber = null }) {
+export default function Entry({ id = "??", title = "", image = "src/images/pepperoni.png", state = null, displayNumber = null }) {
     // forward provided state into the Link so EntryDetails can read full order metadata
     const linkState = state || { id, title, image };
 
@@ -21,7 +21,7 @@ export default function Entry({ id = "??", title = "", image = "src/images/pumpk
 
                 <span>{title}</span>
                 <div className="arrow-btn">
-                    <img src="src/images/Button.png"/>
+                    <img src="public/images/Button.png"/>
                 </div>
             </div>
         </Link>

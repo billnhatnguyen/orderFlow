@@ -3,13 +3,16 @@ import { useParams, Link } from "react-router-dom";
 import { getDatabase, ref, get } from "firebase/database";
 import app from "../Firebase.jsx";
 
-// Optional helper to match image based on item name (same logic as SalesQueue)
+// Optional helper to match image based on item name
 function getImageForItem(name) {
-  const lower = (name || "").toLowerCase();
-  if (lower.includes("pizza")) return "src/images/food.png";
-  if (lower.includes("salad")) return "src/images/apple.png";
-  if (lower.includes("soup")) return "src/images/pumpkin.png";
-  return "src/images/default.png";
+  const lower = name.toLowerCase();
+  if (lower.includes("pepperoni")) return "/images/pepperoni.png";
+  if (lower.includes("bbq")) return "/images/bbq.png";
+  if (lower.includes("chicken")) return "/images/chicken.png";
+  if (lower.includes("margherita")) return "/images/margherita.png";
+  if (lower.includes("veggie")) return "/images/veggie.png";
+  if (lower.includes("hawaiian")) return "/images/hawaiian.png";
+  return "public/images/default.png";
 }
 
 export default function EntryScroll() {

@@ -74,8 +74,11 @@ export default function SalesQueue() {
 // Optional helper to match image based on item name
 function getImageForItem(name) {
   const lower = name.toLowerCase();
-  if (lower.includes("pizza")) return "src/images/food.png";
-  if (lower.includes("salad")) return "src/images/apple.png";
-  if (lower.includes("soup")) return "src/images/pumpkin.png";
-  return "src/images/default.png";
+  if (lower.includes("pepperoni")) return "public/images/pepperoni.png";
+  if (lower.includes("bbq")) return "public/images/bbq.png";
+  if (lower.includes("chicken")) return "public/images/chicken.png";
+  if (lower.includes("margherita")) return "public/images/margherita.png";
+  if (lower.includes("veggie")) return "public/images/veggie.png";
+  if (lower.includes("hawaiian")) return "public/images/hawaiian.png";
+  return "public/images/default.png";
 }

@@ -34,7 +34,7 @@ body {
   align-items: center;
   color: #FFFF77;
   flex-direction: column;
-  background-image: url("images/Hero.png");
+  background-image: url("public/images/Hero.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

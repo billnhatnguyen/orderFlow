@@ -31,6 +31,7 @@ def initialize_tts():
         engine.setProperty('volume', 1.0)
         voices = engine.getProperty('voices')
         engine.setProperty('voice', voices[6].id)
+        return engine
 
     except Exception as e:
         print(f"TTS initialization error: {e}")
@@ -39,7 +40,6 @@ r = sr.Recognizer()
 
 def speakUp(prompt: str = None) -> str:
     if prompt:
-        print(prompt)
         say_prompt(prompt)
     with sr.Microphone() as source: 
         r.adjust_for_ambient_noise(source, duration=0.5)

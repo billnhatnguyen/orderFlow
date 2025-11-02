@@ -11,8 +11,8 @@ from typing import Optional, List, Dict
 from typing import Optional
 import re
 import ast
-import json
-import pyttsx3
+import json 
+#import pyttsx3 strayed away due to eleven labs being
 import speech_recognition as sr
 import firebase_admin
 from firebase_admin import credentials, db
@@ -51,14 +51,19 @@ def speakUp(prompt: str = None) -> str:
         except sr.WaitTimeoutError:
             return "reprompt me please"
 
-        try:
-            text = r.recognize_google(audio)
-            print(f"You said: {text}")
-            return text
-        except sr.UnknownValueError:
-            return "reprompt me please"
-        except sr.RequestError:
-            return "reprompt me please"
+        languages = ["en-EN"]
+
+        for lang in languages:
+            try:
+                text = r.recognize_google(audio, language=lang)
+                print(f"You said: {text}")
+                return text
+            except sr.UnknownValueError:
+                continue
+            except sr.RequestError:
+                return "reprompt me please"
+        return "reprompt me please"
+
 
 # Global TTS engine
 nyapper = initialize_tts()
@@ -634,6 +639,20 @@ def firebasePusher(receipt_dict: dict):
                     normalized.append({"itemName": str(item)})
             receipt_dict["orderDetails"] = normalized
 
+        # RECALCULATE TOTAL PRICE FROM ORDER DETAILS
+        total_price = 0.0
+        if receipt_dict.get("orderDetails"):
+            for item in receipt_dict["orderDetails"]:
+                if isinstance(item, dict):
+                    price = float(item.get("price", 0))
+                    quantity = int(item.get("quantity", 0))
+                    total_price += price * quantity
+        
+        # Update the totalPrice field with the calculated value
+        receipt_dict["totalPrice"] = round(total_price, 2)
+        
+        print(f"[DEBUG] Calculated total price: ${total_price:.2f}")
+
         # Add timestamp in UTC ISO format if not present
         if not receipt_dict.get("timestamp"):
             receipt_dict["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -641,6 +660,7 @@ def firebasePusher(receipt_dict: dict):
         # Push under /orders
         new_ref = ref.child("orders").push(receipt_dict)
         print(f"Pushed receipt to Firebase at key: {new_ref.key}")
+        print(f"Receipt data: {receipt_dict}")
         try:
             say_prompt("Order saved successfully. Thank you.")
         except Exception:

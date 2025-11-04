@@ -1,6 +1,11 @@
-langchain 
-langchain-community
-langchain-openai
-langchain-google-genai
 python-dotenv
 pydantic
+typing-extensions
+langchain
+langchain-core
+langchain-google-genai
+firebase-admin
+SpeechRecognition
+PyAudio
+elevenlabs
+pyttsx3

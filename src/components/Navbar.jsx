@@ -23,7 +23,7 @@ export default function Navbar() {
     return (
         <nav className="navbar">
             <div className="navbar-left">
-                <Link to="/">
+                <Link to="/" style={{ textDecoration: 'none' }}>
                     <span className="nav-element">OrderFlow</span>
                 </Link>
             </div>

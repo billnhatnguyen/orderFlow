@@ -28,7 +28,7 @@ The system enables customers to place orders entirely through natural conversati
   - Total price  
 - Ensures normalized, structured order receipts  
 
-### 🖥️ React Frontend Dashboard
+### React Frontend Dashboard
 - Real-time sales queue that listens to Firebase updates using `onValue`  
 - Renders item-level entries including images, prices, names, and metadata  
 - Clean, responsive UI for sales and operations teams  

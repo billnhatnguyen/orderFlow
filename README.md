@@ -55,7 +55,7 @@ The system enables customers to place orders entirely through natural conversati
 ---
 
 ## Project Structure
-
+```bash
 backend/
 │── main.py
 │── requirements.txt
@@ -71,7 +71,7 @@ frontend/
 │ ├── App.jsx
 │── public/images/
 │── package.json
-
+```
 ---
 
 ## How It Works

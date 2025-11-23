@@ -1,13 +1,13 @@
-# 🍕 AI Voice-Activated Pizza Ordering System
+# AI Voice-Activated Pizza Ordering System
 
 A full-stack, voice-driven pizza ordering platform built with **Python**, **Google Gemini**, **LangChain**, **React**, **Firebase Realtime Database**, and **ElevenLabs TTS**.  
 The system enables customers to place orders entirely through natural conversation, while a React frontend provides a real-time dashboard of incoming orders.
 
 ---
 
-## 🚀 Features
+## Features
 
-### 🗣️ Conversational AI Ordering (Backend)
+### Conversational AI Ordering (Backend)
 - Fully voice-controlled ordering using **SpeechRecognition**, **Google Gemini 2.5**, and **ElevenLabs TTS**
 - LangChain agent using **structured tool-calling** to guide users through:
   - Name collection  
@@ -19,7 +19,7 @@ The system enables customers to place orders entirely through natural conversati
 - Automated total price calculation and receipt generation  
 - Robust error handling and fallback logic for speech and tool calls  
 
-### 🔥 Firebase Integration
+### Firebase Integration
 - Uses **Firebase Realtime Database** to store:
   - Customer details  
   - Delivery/pickup method  
@@ -36,7 +36,7 @@ The system enables customers to place orders entirely through natural conversati
 
 ---
 
-## 🏗️ Tech Stack
+## Tech Stack
 
 ### Backend
 - Python  
@@ -54,7 +54,7 @@ The system enables customers to place orders entirely through natural conversati
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 backend/
 │── main.py
@@ -74,9 +74,9 @@ frontend/
 
 ---
 
-## ⚙️ How It Works
+## How It Works
 
-### 1️⃣ Backend Flow
+### Backend Flow
 1. Agent calls tools sequentially:
    - `get_name`  
    - `get_phone_number`  
@@ -88,7 +88,7 @@ frontend/
 3. Receipt is saved to Firebase with timestamp  
 4. Frontend streams updates instantly  
 
-### 2️⃣ Frontend Flow
+### Frontend Flow
 - Connects to Firebase Realtime Database  
 - Subscribes to `/orders` path  
 - Flattens itemized order data into display-ready entries  
@@ -102,9 +102,15 @@ frontend/
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 ### Backend Setup
 ```bash
 pip install -r requirements.txt
 python main.py
+```
+
+### Frontend Setup
+```bash
+npm run dev
+```
